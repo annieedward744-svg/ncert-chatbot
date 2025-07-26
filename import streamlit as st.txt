@@ -1,0 +1,40 @@
+import streamlit as st
+import openai
+
+st.set_page_config(page_title="NCERT Q&A Bot", layout="centered")
+
+st.title("📘 NCERT Science Doubt Solver")
+st.markdown("Ask any question based on the NCERT Class 8 Science textbook.")
+
+# OpenAI Key input
+openai.api_key = st.sidebar.text_input("Enter your OpenAI API key", type="password")
+
+# Load NCERT content from text file
+with open("ncert_science_class8.txt", "r", encoding="utf-8") as f:
+    ncert_content = f.read()
+
+# Ask question
+question = st.text_input("🔍 Type your question:")
+
+if question:
+    with st.spinner("Thinking..."):
+        prompt = f"""
+You are a helpful tutor. Use the following NCERT textbook content to answer the student's question.
+
+Textbook:
+{ncert_content[:10000]}  # truncate to first 10000 characters
+
+Question: {question}
+Answer:"""
+
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.2,
+            )
+            answer = response['choices'][0]['message']['content']
+            st.success("Answer:")
+            st.write(answer)
+        except Exception as e:
+            st.error(f"Error: {e}")
